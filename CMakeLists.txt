@@ -1,0 +1,38 @@
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)
+
+project(cs300-a1 VERSION 0.1)
+
+set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
+
+find_package(glm REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(Vulkan REQUIRED )
+
+add_compile_options(-fdiagnostics-color=always)
+add_compile_options(
+	-Wextra 
+	-Wall -Wpedantic 
+	-std=c++20
+)
+
+include(cmake/CPM.cmake)
+
+CPMAddPackage("gh:bishan-batel/crab#reference-type-support")
+CPMAddPackage("gh:fmtlib/fmt#7.1.3")
+
+add_executable(learn-vulkan
+	./src/main.cpp
+	./src/App.cpp
+)
+
+target_link_libraries(learn-vulkan PUBLIC glm::glm glfw Vulkan::Vulkan crab fmt)
+
+target_compile_definitions(learn-vulkan PUBLIC "VULKAN_HPP_NO_STRUCT_CONSTRUCTORS=1")
+
+# target_include_directories(cs300-a1 PUBLIC ${GLEW_INCLUDE_DIRS} ${IMGUI_INCLUDE_DIRS})
