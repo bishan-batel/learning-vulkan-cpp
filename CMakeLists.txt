@@ -13,7 +13,12 @@ set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTOR
 
 find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
-find_package(Vulkan REQUIRED MoltenVK)
+
+if (MACOS) 
+	find_package(Vulkan REQUIRED MoltenVK)
+else()
+	find_package(Vulkan REQUIRED)
+endif()
 
 add_compile_options(-fdiagnostics-color=always)
 add_compile_options(
