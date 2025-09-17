@@ -1,7 +1,9 @@
 #include "App.hpp"
 #include <GLFW/glfw3.h>
 #include <fmt/core.h>
+#include <fmt/printf.h>
 #include <vulkan/vulkan_structs.hpp>
+#include <spdlog/spdlog.h>
 
 auto App::run() -> void {
   init_vulkan();
@@ -15,6 +17,7 @@ auto App::init_vulkan() -> void {
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
+  spdlog::info("Creating GLFW window");
   window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 }
 
@@ -24,6 +27,8 @@ auto App::create_instance() -> void {
     glfwGetRequiredInstanceExtensions(&extension_count),
     extension_count
   };
+
+  spdlog::info("GLFW Required Extensions: {}");
 
   Vec<vk::ExtensionProperties> extension_properties{
     context.enumerateInstanceExtensionProperties()
@@ -41,7 +46,7 @@ auto App::create_instance() -> void {
 
     if (not supported) {
       throw std::runtime_error(
-        fmt::format("GLFW Extension {:q} is not supported", extension)
+        fmt::format("GLFW Extension {} is not supported", extension)
       );
     }
   }
@@ -52,6 +57,7 @@ auto App::create_instance() -> void {
     .ppEnabledExtensionNames = extensions.data()
   };
 
+  spdlog::info("Creating VK Instance");
   instance = vk::raii::Instance{context, creation_info};
 }
 
@@ -62,6 +68,9 @@ auto App::update() -> void {
 }
 
 auto App::cleanup() -> void {
+  spdlog::info("Killing window");
   glfwDestroyWindow(window);
+  //
+  spdlog::info("Terminating GLFW");
   glfwTerminate();
 }

@@ -29,6 +29,8 @@
         vulkan-loader
         vulkan-headers
         vulkan-validation-layers
+        fmt
+        spdlog
       ] ++ (if pkgs.stdenv.isDarwin then [
           # Darwin Specific
           apple

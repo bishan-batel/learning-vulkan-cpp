@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 set(CMAKE_C_COMPILER clang)
 set(CMAKE_CXX_COMPILER clang++)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(cs300-a1 VERSION 0.1)
 
@@ -24,13 +25,20 @@ add_compile_options(
 include(cmake/CPM.cmake)
 
 CPMAddPackage("gh:bishan-batel/crab#reference-type-support")
-CPMAddPackage("gh:fmtlib/fmt#7.1.3")
+
+if (WIN32)
+	CPMAddPackage("gh:gabime/spdlog@1.15.3")
+	CPMAddPackage("gh:fmtlib/fmt#7.1.3")
+else() 
+	find_package(spdlog REQUIRED)
+	find_package(fmt REQUIRED)
+endif()
 
 add_executable(learn-vulkan
 	./src/main.cpp
 	./src/App.cpp
 )
 
-target_link_libraries(learn-vulkan PUBLIC glm::glm glfw Vulkan::Vulkan crab fmt)
+target_link_libraries(learn-vulkan PUBLIC glm::glm glfw Vulkan::Vulkan crab fmt spdlog)
 
 target_compile_definitions(learn-vulkan PUBLIC "VULKAN_HPP_NO_STRUCT_CONSTRUCTORS=1")
