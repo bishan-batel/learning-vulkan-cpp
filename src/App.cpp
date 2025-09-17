@@ -10,7 +10,11 @@
 
 auto App::run() -> void {
   init_vulkan();
+  create_instance();
+  pick_physical_device();
+
   update();
+
   cleanup();
 }
 
@@ -22,8 +26,6 @@ auto App::init_vulkan() -> void {
 
   spdlog::info("Creating GLFW window");
   window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-
-  create_instance();
 }
 
 auto App::create_instance() -> void {
@@ -209,6 +211,8 @@ vk::Bool32 App::debug_callback(
 }
 
 auto App::pick_physical_device() -> void {
+  assert(instance != nullptr);
+
   Vec<vk::raii::PhysicalDevice> devices = instance.enumeratePhysicalDevices();
 
   if (devices.empty()) {
@@ -216,8 +220,18 @@ auto App::pick_physical_device() -> void {
   }
 
   for (vk::raii::PhysicalDevice& device: devices) {
+    if (not is_device_suitable(device)) {
+      continue;
+    }
+
     physical_device = std::move(device);
     break;
+  }
+
+  if (physical_device == nullptr) {
+    throw std::runtime_error{
+      "Could not find any suitable GPU's (Graphics Support)"
+    };
   }
 }
 
@@ -225,22 +239,52 @@ auto App::is_device_suitable(const vk::raii::PhysicalDevice& device) -> bool {
   const vk::PhysicalDeviceProperties properties{device.getProperties()};
 
   if (properties.apiVersion < VK_API_VERSION_1_3) {
+    spdlog::trace("Unsupporetd API version");
     return false;
   }
 
-  const vk::PhysicalDeviceFeatures features{device.getFeatures()};
+  const bool has_queue_family = find_graphics_queue_family(device).is_some();
+
+  if (not has_queue_family) {
+    spdlog::trace("No queue family found");
+    return false;
+  }
+
+  const Vec<vk::ExtensionProperties> extensions{
+    device.enumerateDeviceExtensionProperties()
+  };
+
+  for (const StringView extension: PHYSICAL_DEVICE_EXTENSIONS) {
+    const bool is_supported = ranges::any_of(
+      extensions,
+      [extension](const vk::ExtensionProperties& requested) {
+        return requested.extensionName == extension;
+      }
+    );
+
+    if (not is_supported) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+auto App::find_graphics_queue_family(const vk::raii::PhysicalDevice& device)
+  -> Option<usize> {
 
   const Vec<vk::QueueFamilyProperties> queue_families{
     device.getQueueFamilyProperties()
   };
 
-  ranges::find_if(
-    queue_families,
-    [](vk::QueueFamilyProperties& queue_family) -> bool {
-      constexpr auto FAILURE{static_cast<vk::QueueFlagBits>(0)};
+  for (usize i = 0; i < queue_families.size(); i++) {
+    const vk::QueueFamilyProperties& property{queue_families.at(i)};
 
-      return (queue_family.queueFlags & vk::QueueFlagBits::eGraphics)
-          != FAILURE;
+    if ((property.queueFlags & vk::QueueFlagBits::eGraphics)
+        != static_cast<vk::QueueFlagBits>(0)) {
+      return crab::some(i);
     }
-  );
+  }
+
+  return crab::none;
 }

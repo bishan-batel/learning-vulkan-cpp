@@ -46,7 +46,10 @@ add_executable(learn-vulkan
 
 target_link_libraries(learn-vulkan PUBLIC glm::glm glfw Vulkan::Vulkan crab fmt spdlog)
 
-target_compile_definitions(learn-vulkan PUBLIC "VULKAN_HPP_NO_STRUCT_CONSTRUCTORS=1")
+target_compile_definitions(learn-vulkan PUBLIC 
+	"VULKAN_HPP_NO_STRUCT_CONSTRUCTORS=1"
+	"GLFW_INCLUDE_VULKAN=1"
+)
 
 if(APPLE)
 	target_compile_definitions(learn-vulkan PUBLIC "_OSX=1")
