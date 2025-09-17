@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTOR
 find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 
-if (MACOS) 
+if (APPLE) 
 	find_package(Vulkan REQUIRED MoltenVK)
 else()
 	find_package(Vulkan REQUIRED)
@@ -47,3 +47,9 @@ add_executable(learn-vulkan
 target_link_libraries(learn-vulkan PUBLIC glm::glm glfw Vulkan::Vulkan crab fmt spdlog)
 
 target_compile_definitions(learn-vulkan PUBLIC "VULKAN_HPP_NO_STRUCT_CONSTRUCTORS=1")
+
+if(APPLE)
+	target_compile_definitions(learn-vulkan PUBLIC "_OSX=1")
+elseif(NOT WIN32)
+	target_compile_definitions(learn-vulkan PUBLIC "_LINUX=1")
+endif()

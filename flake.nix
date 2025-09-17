@@ -20,7 +20,6 @@
       libPath = with pkgs; [ 
         glm 
         glfw
-        glfw3
         mesa
         glslang
         spirv-tools
@@ -82,19 +81,25 @@
             ];
             nativeBuildInputs = libPath;
 
-            VK_LAYER_PATH = "${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d";
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath libPath;
-            DYLD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
-              vulkan-volk
-              vulkan-tools
-              vulkan-loader
-              vulkan-headers
-              vulkan-validation-layers
-            ]);
 
+            DYLD_LIBRARY_PATH = if pkgs.stdenv.isDarwin then 
+              pkgs.lib.makeLibraryPath (with pkgs; [
+                vulkan-volk
+                vulkan-tools
+                vulkan-loader
+                vulkan-headers
+                vulkan-validation-layers
+                glfw
+                pkgs.moltenvk
+                apple
+                mesa
+              ]) 
+            else "";
+
+            VK_LAYER_PATH = "${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d";
             VULKAN_SDK = "${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d";
             XDG_DATA_DIRS = builtins.getEnv "XDG_DATA_DIRS";
-            # XDG_RUNTIME_DIR = "/run/user/1000";
           };
       };
     });
