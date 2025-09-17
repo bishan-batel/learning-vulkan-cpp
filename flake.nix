@@ -53,7 +53,6 @@
             xorg.libXinerama
             xorg.libXcursor
             xorg.libXi
-            glfw.dev
             extra-cmake-modules
             libxkbcommon
           ]);
