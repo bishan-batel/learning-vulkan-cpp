@@ -20,10 +20,14 @@
       libPath = with pkgs; [ 
         glm 
         glfw
-        shaderc
-        vulkan-headers
-        vulkan-loader
+        glfw3
+        mesa
+        glslang
+        spirv-tools
+        vulkan-volk
         vulkan-tools
+        vulkan-loader
+        vulkan-headers
         vulkan-validation-layers
       ] ++ (if pkgs.stdenv.isDarwin then [
           # Darwin Specific
@@ -31,6 +35,9 @@
           pkgs.moltenvk
         ] else with pkgs; [ 
             # Linux Specific
+            renderdoc
+            vulkan-tools-lunarg
+            vulkan-extension-layer
             alsa-lib 
             wayland-protocols
             wayland
@@ -74,8 +81,19 @@
             ];
             nativeBuildInputs = libPath;
 
+            VK_LAYER_PATH = "${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d";
             LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath libPath;
+            DYLD_LIBRARY_PATH = pkgs.lib.makeLibraryPath (with pkgs; [
+              vulkan-volk
+              vulkan-tools
+              vulkan-loader
+              vulkan-headers
+              vulkan-validation-layers
+            ]);
+
             VULKAN_SDK = "${pkgs.vulkan-validation-layers}/share/vulkan/explicit_layer.d";
+            XDG_DATA_DIRS = builtins.getEnv "XDG_DATA_DIRS";
+            # XDG_RUNTIME_DIR = "/run/user/1000";
           };
       };
     });

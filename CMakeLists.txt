@@ -12,7 +12,7 @@ set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTOR
 
 find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
-find_package(Vulkan REQUIRED )
+find_package(Vulkan REQUIRED MoltenVK)
 
 add_compile_options(-fdiagnostics-color=always)
 add_compile_options(
@@ -34,5 +34,3 @@ add_executable(learn-vulkan
 target_link_libraries(learn-vulkan PUBLIC glm::glm glfw Vulkan::Vulkan crab fmt)
 
 target_compile_definitions(learn-vulkan PUBLIC "VULKAN_HPP_NO_STRUCT_CONSTRUCTORS=1")
-
-# target_include_directories(cs300-a1 PUBLIC ${GLEW_INCLUDE_DIRS} ${IMGUI_INCLUDE_DIRS})
