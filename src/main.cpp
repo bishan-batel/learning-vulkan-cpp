@@ -1,3 +1,4 @@
+#include <spdlog/spdlog.h>
 #include "App.hpp"
 
 i32 main() {
@@ -7,7 +8,7 @@ i32 main() {
   try {
     app.run();
   } catch (const std::exception& e) {
-    std::cerr << "Failure: " << e.what() << std::endl;
+    spdlog::error("Runtime Exception: {}", e.what());
     return EXIT_FAILURE;
   }
 

@@ -3,6 +3,7 @@
 #include <fmt/core.h>
 #include <fmt/printf.h>
 #include <fmt/ranges.h>
+#include <queue>
 #include <spdlog/common.h>
 #include <vulkan/vulkan_structs.hpp>
 #include <spdlog/spdlog.h>
@@ -29,10 +30,6 @@ auto App::create_instance() -> void {
   // get GLFW extensions
   Vec<const char*> extensions{get_required_extensions()};
 
-#if _OSX
-  extensions.push_back(vk::KHRPortabilityEnumerationExtensionName);
-#endif
-
   spdlog::info(
     "GLFW Required Extensions ({} total): \n{}",
     extensions.size(),
@@ -40,7 +37,7 @@ auto App::create_instance() -> void {
   );
 
   // enumerate supported extensions
-  Vec<vk::ExtensionProperties> extension_properties{
+  const Vec<vk::ExtensionProperties> extension_properties{
     context.enumerateInstanceExtensionProperties()
   };
 
@@ -118,6 +115,7 @@ auto App::create_instance() -> void {
 auto App::update() -> void {
   while (not glfwWindowShouldClose(window)) {
     glfwPollEvents();
+    glfwSwapBuffers(window);
   }
 }
 
@@ -141,6 +139,10 @@ auto App::get_required_extensions() -> Vec<const char*> {
   if (ENABLE_VALIDATION_LAYERS) {
     extensions.push_back(vk::EXTDebugUtilsExtensionName);
   }
+
+#if _OSX
+  extensions.push_back(vk::KHRPortabilityEnumerationExtensionName);
+#endif
 
   return extensions;
 }
@@ -204,4 +206,41 @@ vk::Bool32 App::debug_callback(
   );
 
   return vk::False;
+}
+
+auto App::pick_physical_device() -> void {
+  Vec<vk::raii::PhysicalDevice> devices = instance.enumeratePhysicalDevices();
+
+  if (devices.empty()) {
+    throw std::runtime_error{"Could not find a GPU with Vulkan support"};
+  }
+
+  for (vk::raii::PhysicalDevice& device: devices) {
+    physical_device = std::move(device);
+    break;
+  }
+}
+
+auto App::is_device_suitable(const vk::raii::PhysicalDevice& device) -> bool {
+  const vk::PhysicalDeviceProperties properties{device.getProperties()};
+
+  if (properties.apiVersion < VK_API_VERSION_1_3) {
+    return false;
+  }
+
+  const vk::PhysicalDeviceFeatures features{device.getFeatures()};
+
+  const Vec<vk::QueueFamilyProperties> queue_families{
+    device.getQueueFamilyProperties()
+  };
+
+  ranges::find_if(
+    queue_families,
+    [](vk::QueueFamilyProperties& queue_family) -> bool {
+      constexpr auto FAILURE{static_cast<vk::QueueFlagBits>(0)};
+
+      return (queue_family.queueFlags & vk::QueueFlagBits::eGraphics)
+          != FAILURE;
+    }
+  );
 }

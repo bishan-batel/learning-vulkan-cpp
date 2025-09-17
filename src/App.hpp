@@ -20,9 +20,9 @@ public:
   };
 
 #ifdef NDEBUG
-  static constexpr bool ENABLE_VALIDATION_LAYERS = false;
+  static constexpr bool ENABLE_VALIDATION_LAYERS{false};
 #else
-  static constexpr bool ENABLE_VALIDATION_LAYERS = true;
+  static constexpr bool ENABLE_VALIDATION_LAYERS{true};
 #endif
 
   static constexpr vk::ApplicationInfo APP_INFO{
@@ -46,7 +46,9 @@ private:
 
   auto cleanup() -> void;
 
-  auto debug_callback() -> void {}
+  auto pick_physical_device() -> void;
+
+  auto is_device_suitable(const vk::raii::PhysicalDevice& device) -> bool;
 
   [[nodiscard]] static auto get_required_extensions() -> Vec<const char*>;
 
@@ -62,4 +64,5 @@ private:
   GLFWwindow* window{nullptr};
   vk::raii::Context context{};
   vk::raii::Instance instance{nullptr};
+  vk::raii::PhysicalDevice physical_device{nullptr};
 };
