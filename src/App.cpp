@@ -12,20 +12,25 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 
-auto read_file_contents(const StringView path) -> Vec<u32> {
-  std::ifstream file{path.data(), std::ios::binary};
+auto read_file_contents(const StringView path) -> Vec<u8> {
+  std::ifstream file{path.data(), std::ios::binary | std::ios::ate};
 
   if (!file.is_open()) {
     throw std::runtime_error("failed to open file!");
   }
 
-  Vec<u32> buffer{};
+  std::vector<u8> buffer{};
+  buffer.reserve(static_cast<usize>(file.tellg()));
 
-  while (not file.eof()) {
-    u32 byte{0};
-    file.read(reinterpret_cast<char*>(&byte), 4);
-    buffer.push_back(byte);
+  for (i32 i = 0; i < file.tellg(); i++) {
+    buffer.push_back(0);
   }
+
+  file.seekg(0, std::ios::beg);
+  file.read(
+    reinterpret_cast<char*>(buffer.data()),
+    static_cast<ptrdiff>(buffer.size())
+  );
 
   return buffer;
 }
@@ -151,12 +156,13 @@ auto App::update() -> void {
 
 auto App::cleanup() -> void {
 
+  pipeline_layout.clear();
+  graphics_pipeline.clear();
+  swap_chain_image_views.clear();
   swap_chain.clear();
-  surface.clear();
-  graphics_queue.clear();
-  surface.clear();
   graphics_queue.clear();
   device.clear();
+  surface.clear();
   physical_device.clear();
 
   spdlog::info("Killing window");
@@ -164,8 +170,6 @@ auto App::cleanup() -> void {
   //
   spdlog::info("Terminating GLFW");
   glfwTerminate();
-
-  instance.clear();
 }
 
 auto App::get_required_extensions() -> Vec<const char*> {
@@ -528,7 +532,7 @@ auto App::create_image_view() -> void {
 
 auto App::create_graphics_pipeline() -> void {
   spdlog::info("Creating Graphics Pipeline");
-  const Vec<u32> shader_code{read_file_contents("shaders/slang.spv")};
+  const Vec<u8> shader_code{read_file_contents("shaders/slang.spv")};
 
   spdlog::info("Creating shader module");
   vk::raii::ShaderModule module = create_shader_module(shader_code);
@@ -657,7 +661,7 @@ auto App::create_graphics_pipeline() -> void {
   // vk::BlendOp::eAdd;
 }
 
-auto App::create_shader_module(Span<const u32> code) const
+auto App::create_shader_module(Span<const u8> code) const
   -> vk::raii::ShaderModule {
   spdlog::info("{}", code.size());
   vk::ShaderModuleCreateInfo info{

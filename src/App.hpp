@@ -7,7 +7,7 @@
 #include <vulkan/vulkan_raii.hpp>
 #include <filesystem>
 
-[[nodiscard]] auto read_file_contents(StringView path) -> Vec<u32>;
+[[nodiscard]] auto read_file_contents(StringView path) -> Vec<u8>;
 
 class App {
 public:
@@ -66,7 +66,7 @@ private:
 
   auto create_graphics_pipeline() -> void;
 
-  [[nodiscard]] auto create_shader_module(Span<const u32> code) const
+  [[nodiscard]] auto create_shader_module(Span<const u8> code) const
     -> vk::raii::ShaderModule;
 
   static auto is_device_suitable(const vk::raii::PhysicalDevice& device)
