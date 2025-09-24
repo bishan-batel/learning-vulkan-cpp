@@ -20,8 +20,7 @@
       libPath = with pkgs; [ 
         glm 
         glfw
-        mesa
-        glslang
+        # mesa
         spirv-tools
         vulkan-volk
         vulkan-tools
@@ -32,7 +31,7 @@
         spdlog
       ] ++ (if pkgs.stdenv.isDarwin then [
           # Darwin Specific
-          apple
+          # apple
           pkgs.moltenvk
         ] else with pkgs; [ 
             # Linux Specific
@@ -77,11 +76,12 @@
               llvm.clang-tools
               llvm.clang
 
+              shader-slang
               pkg-config
             ];
             nativeBuildInputs = libPath;
 
-            LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath libPath;
+            # LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath libPath;
 
             DYLD_LIBRARY_PATH = if pkgs.stdenv.isDarwin then 
               pkgs.lib.makeLibraryPath (with pkgs; [
@@ -93,7 +93,6 @@
                 glfw
                 pkgs.moltenvk
                 apple
-                mesa
               ]) 
             else "";
 
