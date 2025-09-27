@@ -12,6 +12,19 @@
 #include <spdlog/spdlog.h>
 #include <fstream>
 
+auto App::init_vulkan() -> void {
+
+  create_instance();
+  setup_debug_messenger();
+  pick_physical_device();
+  create_logical_device();
+  create_swap_chain();
+  create_image_view();
+  create_graphics_pipeline();
+  create_command_pool();
+  create_command_buffer();
+}
+
 auto read_file_contents(const StringView path) -> Vec<u8> {
   std::ifstream file{path.data(), std::ios::binary | std::ios::ate};
 
@@ -41,17 +54,6 @@ auto App::run() -> void {
   update();
 
   cleanup();
-}
-
-auto App::init_vulkan() -> void {
-
-  create_instance();
-  setup_debug_messenger();
-  pick_physical_device();
-  create_logical_device();
-  create_swap_chain();
-  create_image_view();
-  create_graphics_pipeline();
 }
 
 auto App::create_instance() -> void {
@@ -672,3 +674,14 @@ auto App::create_shader_module(Span<const u8> code) const
   vk::raii::ShaderModule module{device, info};
   return module;
 }
+
+auto App::create_command_pool() -> void {
+  vk::CommandPoolCreateInfo pool_info{
+    .flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+    .queueFamilyIndex = graphics_index,
+  };
+
+  command_pool = vk::raii::CommandPool{device, pool_info};
+}
+
+auto App::create_command_buffer() -> void {}

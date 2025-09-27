@@ -24,6 +24,7 @@ public:
     vk::KHRSpirv14ExtensionName,
     vk::KHRSynchronization2ExtensionName,
     vk::KHRCreateRenderpass2ExtensionName,
+    vk::KHRShaderDrawParametersExtensionName,
 #if _OSX
     "VK_KHR_portability_subset",
 #endif
@@ -65,6 +66,10 @@ private:
   auto create_image_view() -> void;
 
   auto create_graphics_pipeline() -> void;
+
+  auto create_command_pool() -> void;
+
+  auto create_command_buffer() -> void;
 
   [[nodiscard]] auto create_shader_module(Span<const u8> code) const
     -> vk::raii::ShaderModule;
@@ -112,9 +117,12 @@ private:
 
   vk::raii::Pipeline graphics_pipeline{nullptr};
   vk::raii::PipelineLayout pipeline_layout{nullptr};
+  vk::raii::CommandPool command_pool{nullptr};
 
   vk::SurfaceFormatKHR swap_chain_surface_format{};
   vk::PresentModeKHR swap_chain_surface_present_mode{};
   vk::Format swap_chain_image_format{vk::Format::eUndefined};
   vk::Extent2D swap_chain_extent{};
+
+  u32 graphics_index{0};
 };
